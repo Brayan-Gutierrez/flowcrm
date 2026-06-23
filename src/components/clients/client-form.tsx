@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore } from "@/lib/store";
+import { useStore, usePermissions } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { CLIENT_STATUS_LABEL, type Client, type ClientStatus } from "@/lib/types";
 
@@ -36,6 +36,7 @@ interface Props {
 
 export function ClientForm({ open, onOpenChange, client }: Props) {
   const { users, addClient, updateClient, currentUserId } = useStore();
+  const { canReassign } = usePermissions();
   const { toast } = useToast();
 
   const [form, setForm] = React.useState({
@@ -184,7 +185,11 @@ export function ClientForm({ open, onOpenChange, client }: Props) {
           </div>
           <div className="space-y-1.5">
             <Label>Ejecutivo</Label>
-            <Select value={form.ownerId} onValueChange={(v) => set("ownerId", v)}>
+            <Select
+              value={form.ownerId}
+              onValueChange={(v) => set("ownerId", v)}
+              disabled={!canReassign}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
+import { usePermissions } from "@/lib/store";
+import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -12,6 +14,10 @@ interface SidebarProps {
 
 export function SidebarNav({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const { role } = usePermissions();
+  const items = NAV_ITEMS.filter(
+    (item) => !item.permission || can(role, item.permission),
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -28,7 +34,7 @@ export function SidebarNav({ onNavigate }: SidebarProps) {
 
       {/* Navegación */}
       <nav className="flex-1 space-y-1 overflow-y-auto scrollbar-thin p-3">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;

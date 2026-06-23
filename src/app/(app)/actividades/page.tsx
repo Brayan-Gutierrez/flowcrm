@@ -33,7 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore, useUserMap } from "@/lib/store";
+import { useStore, useUserMap, usePermissions } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials } from "@/lib/utils";
 import { formatDate, isOverdue } from "@/lib/format";
@@ -59,6 +59,7 @@ const COLORS: Record<ActivityType, string> = {
 export default function ActividadesPage() {
   const { activities, toggleActivity, deleteActivity } = useStore();
   const users = useUserMap();
+  const { canDelete } = usePermissions();
   const { toast } = useToast();
 
   const [typeFilter, setTypeFilter] = React.useState<string>("todas");
@@ -251,16 +252,20 @@ export default function ActividadesPage() {
                         <CheckSquare className="h-4 w-4" />
                         {a.completed ? "Marcar pendiente" : "Completar"}
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => {
-                          deleteActivity(a.id);
-                          toast({ title: "Actividad eliminada" });
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" /> Eliminar
-                      </DropdownMenuItem>
+                      {canDelete && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => {
+                              deleteActivity(a.id);
+                              toast({ title: "Actividad eliminada" });
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" /> Eliminar
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardContent>

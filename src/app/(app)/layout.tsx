@@ -1,8 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { SidebarNav } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout({
@@ -11,6 +14,27 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const router = useRouter();
+  const { ready, sessionUserId } = useStore();
+
+  // Guardia de sesión: sin usuario autenticado → al login.
+  React.useEffect(() => {
+    if (ready && !sessionUserId) router.replace("/login");
+  }, [ready, sessionUserId, router]);
+
+  // Mientras se resuelve la sesión o se redirige, evita parpadeo.
+  if (!ready || !sessionUserId) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/30">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="flex h-11 w-11 animate-pulse items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <p className="text-sm">Cargando…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted/30">

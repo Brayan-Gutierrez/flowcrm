@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore } from "@/lib/store";
+import { useStore, usePermissions } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import {
   LEAD_SOURCE_LABEL,
@@ -51,6 +51,7 @@ const empty = {
 
 export function ProspectForm({ open, onOpenChange, prospect }: Props) {
   const { users, addProspect, updateProspect, currentUserId } = useStore();
+  const { canReassign } = usePermissions();
   const { toast } = useToast();
   const [form, setForm] = React.useState(empty);
   const [ownerId, setOwnerId] = React.useState(currentUserId);
@@ -188,7 +189,11 @@ export function ProspectForm({ open, onOpenChange, prospect }: Props) {
             </Select>
           </Field>
           <Field label="Ejecutivo asignado">
-            <Select value={ownerId} onValueChange={setOwnerId}>
+            <Select
+              value={ownerId}
+              onValueChange={setOwnerId}
+              disabled={!canReassign}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

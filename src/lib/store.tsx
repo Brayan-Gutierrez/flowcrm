@@ -8,6 +8,7 @@
 // ============================================================
 import * as React from "react";
 import { seedData } from "./mock-data";
+import { can } from "./permissions";
 import type {
   Activity,
   Client,
@@ -20,6 +21,7 @@ import type {
 } from "./types";
 
 const STORAGE_KEY = "flowcrm:data:v1";
+const SESSION_KEY = "flowcrm:session:v1";
 
 function genId(prefix: string) {
   return `${prefix}_${Math.abs(
@@ -28,7 +30,13 @@ function genId(prefix: string) {
 }
 
 interface StoreContextValue extends CrmData {
+  /** Id usado por defecto como "dueño" de nuevos registros (siempre válido). */
   currentUserId: string;
+  // Sesión (login simulado)
+  sessionUserId: string | null;
+  ready: boolean; // ya se resolvió la sesión desde localStorage
+  login: (userId: string) => void;
+  logout: () => void;
   // Equipo / Ejecutivos
   addUser: (u: Omit<User, "id">) => User;
   updateUser: (id: string, patch: Partial<User>) => void;
@@ -68,12 +76,19 @@ const StoreContext = React.createContext<StoreContextValue | null>(null);
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = React.useState<CrmData>(seedData);
   const [hydrated, setHydrated] = React.useState(false);
+  const [sessionUserId, setSessionUserId] = React.useState<string | null>(null);
 
-  // Carga desde localStorage al montar (solo cliente).
+  // Carga datos y sesión desde localStorage al montar (solo cliente).
   React.useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) setData(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+    try {
+      const sess = window.localStorage.getItem(SESSION_KEY);
+      if (sess) setSessionUserId(sess);
     } catch {
       /* ignore */
     }
@@ -96,7 +111,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     return {
       ...data,
-      currentUserId: "u1",
+      // Dueño por defecto: el usuario en sesión, o el primero como respaldo.
+      currentUserId: sessionUserId ?? data.users[0]?.id ?? "",
+      sessionUserId,
+      ready: hydrated,
+      login: (userId) => {
+        setSessionUserId(userId);
+        try {
+          window.localStorage.setItem(SESSION_KEY, userId);
+        } catch {
+          /* ignore */
+        }
+      },
+      logout: () => {
+        setSessionUserId(null);
+        try {
+          window.localStorage.removeItem(SESSION_KEY);
+        } catch {
+          /* ignore */
+        }
+      },
 
       // ---------- Equipo / Ejecutivos ----------
       addUser: (u) => {
@@ -316,7 +350,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         update({});
       },
     };
-  }, [data]);
+  }, [data, sessionUserId, hydrated]);
 
   return (
     <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
@@ -332,6 +366,23 @@ export function useStore() {
 export function useCurrentUser() {
   const { users, currentUserId } = useStore();
   return users.find((u) => u.id === currentUserId) ?? users[0];
+}
+
+/** Usuario realmente autenticado (o undefined si no hay sesión). */
+export function useSessionUser() {
+  const { users, sessionUserId } = useStore();
+  return users.find((u) => u.id === sessionUserId);
+}
+
+/** Permisos derivados del rol del usuario en sesión. */
+export function usePermissions() {
+  const user = useSessionUser();
+  return {
+    role: user?.role,
+    canManageTeam: can(user?.role, "manage_team"),
+    canDelete: can(user?.role, "delete_record"),
+    canReassign: can(user?.role, "reassign_owner"),
+  };
 }
 
 export function useUserMap() {

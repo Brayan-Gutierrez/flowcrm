@@ -42,11 +42,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore } from "@/lib/store";
+import { useStore, usePermissions } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { getExecutiveRanking } from "@/lib/analytics";
 import { ROLE_LABEL, type User } from "@/lib/types";
 import { formatCurrency, getInitials } from "@/lib/utils";
+import { NoAccess } from "@/components/shared/no-access";
 
 const roleVariant = {
   admin: "default",
@@ -57,6 +58,7 @@ const roleVariant = {
 export default function EquipoPage() {
   const store = useStore();
   const { users, deleteUser, countAssignments } = store;
+  const { canManageTeam } = usePermissions();
   const { toast } = useToast();
 
   const [formOpen, setFormOpen] = React.useState(false);
@@ -93,6 +95,13 @@ export default function EquipoPage() {
 
   function confirmDelete() {
     if (!deleting) return;
+    if (deleting.id === store.sessionUserId) {
+      toast({
+        variant: "destructive",
+        title: "No puedes eliminar tu propia cuenta en sesión",
+      });
+      return;
+    }
     if (isLastUser) {
       toast({
         variant: "destructive",
@@ -115,6 +124,13 @@ export default function EquipoPage() {
         : deleting.name,
     });
     setDeleting(null);
+  }
+
+  // Guardia de permisos: solo Administrador administra el equipo.
+  if (!canManageTeam) {
+    return (
+      <NoAccess message="La administración del equipo está reservada al rol Administrador." />
+    );
   }
 
   return (

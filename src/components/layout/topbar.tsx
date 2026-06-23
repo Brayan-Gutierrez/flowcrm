@@ -1,9 +1,10 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, LogOut } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import {
@@ -20,12 +21,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCurrentUser, useStore } from "@/lib/store";
+import { ROLE_LABEL } from "@/lib/types";
 import { getInitials } from "@/lib/utils";
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useCurrentUser();
-  const { resetData } = useStore();
+  const { resetData, logout } = useStore();
   const current = NAV_ITEMS.find(
     (i) => pathname === i.href || pathname.startsWith(i.href + "/"),
   );
@@ -69,22 +72,32 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-1">
                 <span>{user.name}</span>
                 <span className="text-xs font-normal text-muted-foreground">
                   {user.email}
                 </span>
+                <Badge variant="secondary" className="mt-0.5 w-fit">
+                  {ROLE_LABEL[user.role]}
+                </Badge>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Mi perfil</DropdownMenuItem>
-            <DropdownMenuItem>Configuración</DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={resetData}
               className="text-destructive focus:text-destructive"
             >
               Restablecer datos demo
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                logout();
+                router.replace("/login");
+              }}
+            >
+              <LogOut className="h-4 w-4" /> Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

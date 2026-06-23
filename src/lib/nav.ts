@@ -10,12 +10,15 @@ import {
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
+import type { Permission } from "./permissions";
 
 export interface NavItem {
   title: string;
   href: string;
   icon: LucideIcon;
   description: string;
+  /** Si se define, el item solo se muestra a quien tenga este permiso. */
+  permission?: Permission;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -72,5 +75,6 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/equipo",
     icon: UsersRound,
     description: "Administración de ejecutivos",
+    permission: "manage_team",
   },
 ];

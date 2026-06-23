@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore } from "@/lib/store";
+import { useStore, usePermissions } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import {
   LEAD_SOURCE_LABEL,
@@ -45,6 +45,7 @@ export function OpportunityForm({
 }: Props) {
   const { users, clients, addOpportunity, updateOpportunity, currentUserId } =
     useStore();
+  const { canReassign } = usePermissions();
   const { toast } = useToast();
 
   const [form, setForm] = React.useState({
@@ -233,6 +234,7 @@ export function OpportunityForm({
             <Select
               value={form.ownerId}
               onValueChange={(v) => set("ownerId", v)}
+              disabled={!canReassign}
             >
               <SelectTrigger>
                 <SelectValue />

@@ -39,7 +39,7 @@ export default function LandingPage() {
             <a href="#pricing" className="hover:text-foreground">Precios</a>
           </nav>
           <Button asChild>
-            <Link href="/dashboard">
+            <Link href="/login">
               Entrar a la demo <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -66,12 +66,12 @@ export default function LandingPage() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/dashboard">
+              <Link href="/login">
                 Probar el dashboard <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/pipeline">Ver el pipeline</Link>
+              <Link href="/login">Ver la demo</Link>
             </Button>
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
@@ -124,7 +124,7 @@ export default function LandingPage() {
               Explora la demo completa con datos realistas. Sin registro.
             </p>
             <Button asChild size="lg" variant="secondary" className="mt-7">
-              <Link href="/dashboard">
+              <Link href="/login">
                 Entrar ahora <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

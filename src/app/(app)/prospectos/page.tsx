@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ProspectStatusBadge, SourceBadge } from "@/components/shared/badges";
-import { useStore, useUserMap } from "@/lib/store";
+import { useStore, useUserMap, usePermissions } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, getInitials } from "@/lib/utils";
 import {
@@ -46,6 +46,7 @@ import {
 export default function ProspectosPage() {
   const { prospects, deleteProspect, convertProspect } = useStore();
   const users = useUserMap();
+  const { canDelete } = usePermissions();
   const { toast } = useToast();
 
   const [search, setSearch] = React.useState("");
@@ -198,13 +199,17 @@ export default function ProspectosPage() {
                     <UserCheck className="h-4 w-4" /> Convertir a cliente
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => handleDelete(p)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" /> Eliminar
-                </DropdownMenuItem>
+                {canDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => handleDelete(p)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" /> Eliminar
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -212,7 +217,7 @@ export default function ProspectosPage() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [users],
+    [users, canDelete],
   );
 
   return (

@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore, useUserMap } from "@/lib/store";
+import { useStore, useUserMap, usePermissions } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { quoteTotals } from "@/lib/analytics";
 import { exportQuotePdf } from "@/lib/pdf";
@@ -44,6 +44,7 @@ import { QUOTE_STATUS_LABEL, type Quote } from "@/lib/types";
 export default function CotizacionesPage() {
   const { quotes, deleteQuote } = useStore();
   const users = useUserMap();
+  const { canDelete } = usePermissions();
   const { toast } = useToast();
 
   const [search, setSearch] = React.useState("");
@@ -159,16 +160,20 @@ export default function CotizacionesPage() {
                   <DropdownMenuItem onClick={() => handleDownload(q)}>
                     <Download className="h-4 w-4" /> Descargar PDF
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={() => {
-                      deleteQuote(q.id);
-                      toast({ title: "Cotización eliminada" });
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" /> Eliminar
-                  </DropdownMenuItem>
+                  {canDelete && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => {
+                          deleteQuote(q.id);
+                          toast({ title: "Cotización eliminada" });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" /> Eliminar
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -177,7 +182,7 @@ export default function CotizacionesPage() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [users],
+    [users, canDelete],
   );
 
   return (

@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore, useUserMap } from "@/lib/store";
+import { useStore, useUserMap, usePermissions } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { formatCompact, formatCurrency, getInitials } from "@/lib/utils";
 import {
@@ -32,6 +32,7 @@ import {
 export default function PipelinePage() {
   const { opportunities, moveOpportunity, deleteOpportunity } = useStore();
   const users = useUserMap();
+  const { canDelete } = usePermissions();
   const { toast } = useToast();
 
   const [formOpen, setFormOpen] = React.useState(false);
@@ -166,16 +167,20 @@ export default function PipelinePage() {
                                       <DropdownMenuItem onClick={() => openEdit(o)}>
                                         <Pencil className="h-4 w-4" /> Editar
                                       </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        className="text-destructive focus:text-destructive"
-                                        onClick={() => {
-                                          deleteOpportunity(o.id);
-                                          toast({ title: "Oportunidad eliminada" });
-                                        }}
-                                      >
-                                        <Trash2 className="h-4 w-4" /> Eliminar
-                                      </DropdownMenuItem>
+                                      {canDelete && (
+                                        <>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem
+                                            className="text-destructive focus:text-destructive"
+                                            onClick={() => {
+                                              deleteOpportunity(o.id);
+                                              toast({ title: "Oportunidad eliminada" });
+                                            }}
+                                          >
+                                            <Trash2 className="h-4 w-4" /> Eliminar
+                                          </DropdownMenuItem>
+                                        </>
+                                      )}
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 </div>
