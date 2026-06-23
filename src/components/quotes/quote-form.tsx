@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -186,10 +187,10 @@ export function QuoteForm({ open, onOpenChange, quote }: Props) {
             </div>
             <div className="space-y-1.5">
               <Label>Válida hasta</Label>
-              <Input
-                type="date"
+              <DatePicker
+                className="w-full"
                 value={validUntil}
-                onChange={(e) => setValidUntil(e.target.value)}
+                onChange={setValidUntil}
               />
             </div>
           </div>

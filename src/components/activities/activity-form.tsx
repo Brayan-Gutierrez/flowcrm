@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -171,10 +172,10 @@ export function ActivityForm({
           </div>
           <div className="space-y-1.5">
             <Label>Fecha</Label>
-            <Input
-              type="date"
+            <DatePicker
+              className="w-full"
               value={form.dueDate}
-              onChange={(e) => set("dueDate", e.target.value)}
+              onChange={(v) => set("dueDate", v)}
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">

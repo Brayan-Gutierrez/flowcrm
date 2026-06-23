@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -203,10 +204,10 @@ export function OpportunityForm({
           </div>
           <div className="space-y-1.5">
             <Label>Cierre estimado</Label>
-            <Input
-              type="date"
+            <DatePicker
+              className="w-full"
               value={form.expectedCloseDate}
-              onChange={(e) => set("expectedCloseDate", e.target.value)}
+              onChange={(v) => set("expectedCloseDate", v)}
             />
           </div>
           <div className="space-y-1.5">
