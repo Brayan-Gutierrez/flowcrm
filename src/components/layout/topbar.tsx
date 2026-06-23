@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, LogOut } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationsMenu } from "@/components/layout/notifications-menu";
+import { ProfileDialog } from "@/components/account/profile-dialog";
 import {
   Avatar,
   AvatarFallback,
@@ -29,6 +31,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const router = useRouter();
   const user = useCurrentUser();
   const { resetData, logout } = useStore();
+  const [profileOpen, setProfileOpen] = React.useState(false);
   const current = NAV_ITEMS.find(
     (i) => pathname === i.href || pathname.startsWith(i.href + "/"),
   );
@@ -83,7 +86,9 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Mi perfil</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setProfileOpen(true)}>
+              Mi perfil
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={resetData}
               className="text-destructive focus:text-destructive"
@@ -102,6 +107,8 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
     </header>
   );
 }
