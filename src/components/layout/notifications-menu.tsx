@@ -38,24 +38,59 @@ const ICON_STYLES: Record<NotificationKind, string> = {
   prospecto_caliente: "bg-violet-500/10 text-violet-600",
 };
 
+const SEEN_KEY = "flowcrm:notif-seen:v1";
+
 export function NotificationsMenu() {
   const data = useStore();
   const notifications = React.useMemo(() => getNotifications(data), [data]);
   const count = notifications.length;
 
+  // Marca de "leídas": se guardan los ids vistos para ocultar el badge rojo.
+  const [seen, setSeen] = React.useState<Set<string>>(new Set());
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    try {
+      const raw = window.localStorage.getItem(SEEN_KEY);
+      if (raw) setSeen(new Set(JSON.parse(raw) as string[]));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // No leídas = notificaciones actuales que aún no se han visto.
+  const unread = mounted
+    ? notifications.filter((n) => !seen.has(n.id)).length
+    : 0;
+
+  function markAllSeen() {
+    const ids = notifications.map((n) => n.id);
+    setSeen(new Set(ids));
+    try {
+      window.localStorage.setItem(SEEN_KEY, JSON.stringify(ids));
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      onOpenChange={(open) => {
+        if (open && unread > 0) markAllSeen();
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
-          aria-label={`Notificaciones${count ? ` (${count})` : ""}`}
+          aria-label={`Notificaciones${unread ? ` (${unread} sin leer)` : ""}`}
           className="relative"
         >
           <Bell className="h-4 w-4" />
-          {count > 0 && (
+          {unread > 0 && (
             <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-none text-destructive-foreground">
-              {count > 9 ? "9+" : count}
+              {unread > 9 ? "9+" : unread}
             </span>
           )}
         </Button>
