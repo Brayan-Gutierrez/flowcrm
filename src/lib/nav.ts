@@ -7,6 +7,7 @@ import {
   FileText,
   BarChart3,
   Sparkles,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -65,5 +66,11 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/ia",
     icon: Sparkles,
     description: "Resumen y recomendaciones",
+  },
+  {
+    title: "Equipo",
+    href: "/equipo",
+    icon: UsersRound,
+    description: "Administración de ejecutivos",
   },
 ];

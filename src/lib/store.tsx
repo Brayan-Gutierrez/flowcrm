@@ -16,6 +16,7 @@ import type {
   PipelineStage,
   Prospect,
   Quote,
+  User,
 } from "./types";
 
 const STORAGE_KEY = "flowcrm:data:v1";
@@ -28,6 +29,13 @@ function genId(prefix: string) {
 
 interface StoreContextValue extends CrmData {
   currentUserId: string;
+  // Equipo / Ejecutivos
+  addUser: (u: Omit<User, "id">) => User;
+  updateUser: (id: string, patch: Partial<User>) => void;
+  /** Elimina un ejecutivo; si tiene registros, los reasigna a reassignToId. */
+  deleteUser: (id: string, reassignToId?: string) => void;
+  /** Nº de registros (prospectos, clientes, oportunidades...) asignados. */
+  countAssignments: (id: string) => number;
   // Prospectos
   addProspect: (p: Omit<Prospect, "id" | "createdAt">) => Prospect;
   updateProspect: (id: string, patch: Partial<Prospect>) => void;
@@ -89,6 +97,53 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return {
       ...data,
       currentUserId: "u1",
+
+      // ---------- Equipo / Ejecutivos ----------
+      addUser: (u) => {
+        const user: User = { ...u, id: genId("u") };
+        setData((d) => ({ ...d, users: [...d.users, user] }));
+        return user;
+      },
+      updateUser: (id, patch) =>
+        setData((d) => ({
+          ...d,
+          users: d.users.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+        })),
+      countAssignments: (id) =>
+        data.prospects.filter((x) => x.ownerId === id).length +
+        data.clients.filter((x) => x.ownerId === id).length +
+        data.opportunities.filter((x) => x.ownerId === id).length +
+        data.activities.filter((x) => x.ownerId === id).length +
+        data.quotes.filter((x) => x.ownerId === id).length,
+      deleteUser: (id, reassignToId) =>
+        setData((d) => {
+          const reassign = (ownerId: string) =>
+            ownerId === id && reassignToId ? reassignToId : ownerId;
+          return {
+            ...d,
+            users: d.users.filter((u) => u.id !== id),
+            prospects: d.prospects.map((x) => ({
+              ...x,
+              ownerId: reassign(x.ownerId),
+            })),
+            clients: d.clients.map((x) => ({
+              ...x,
+              ownerId: reassign(x.ownerId),
+            })),
+            opportunities: d.opportunities.map((x) => ({
+              ...x,
+              ownerId: reassign(x.ownerId),
+            })),
+            activities: d.activities.map((x) => ({
+              ...x,
+              ownerId: reassign(x.ownerId),
+            })),
+            quotes: d.quotes.map((x) => ({
+              ...x,
+              ownerId: reassign(x.ownerId),
+            })),
+          };
+        }),
 
       // ---------- Prospectos ----------
       addProspect: (p) => {

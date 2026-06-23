@@ -24,6 +24,7 @@ producción y datos de ejemplo realistas.
 | **Cotizaciones** | CRUD con conceptos dinámicos y **exportación a PDF** |
 | **Reportes** | Conversión, ventas, fuentes de captación y desempeño |
 | **IA Comercial** | Resumen automático y recomendación de siguiente acción |
+| **Equipo** | Alta/edición/baja de ejecutivos asignables (con reasignación de registros) |
 
 Extras: modo claro/oscuro, diseño responsive, toasts, datos persistentes.
 

@@ -4,6 +4,12 @@
 
 export type Role = "admin" | "gerente" | "ejecutivo";
 
+export const ROLE_LABEL: Record<Role, string> = {
+  admin: "Administrador",
+  gerente: "Gerente",
+  ejecutivo: "Ejecutivo",
+};
+
 export interface User {
   id: string;
   name: string;
