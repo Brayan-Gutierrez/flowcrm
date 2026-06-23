@@ -17,35 +17,71 @@ import { SourceChart } from "@/components/dashboard/source-chart";
 import { ExecutiveRanking } from "@/components/dashboard/executive-ranking";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  PeriodSelector,
+  type PeriodState,
+} from "@/components/dashboard/period-selector";
 import { useStore } from "@/lib/store";
 import {
+  APP_TODAY,
+  filterCrmByRange,
   getExecutiveRanking,
   getFunnel,
   getKpis,
-  getMonthlySales,
+  getPeriodRange,
+  getSalesTrend,
   getSourceBreakdown,
+  PERIOD_LABEL,
 } from "@/lib/analytics";
 import { formatCurrency } from "@/lib/utils";
+import { formatDate } from "@/lib/format";
 import { StageBadge } from "@/components/shared/badges";
+
+// Fecha de referencia en formato yyyy-mm-dd para los inputs "custom".
+const TODAY_ISO = APP_TODAY.toISOString().slice(0, 10);
+const MONTH_AGO_ISO = new Date(
+  APP_TODAY.getFullYear(),
+  APP_TODAY.getMonth() - 1,
+  APP_TODAY.getDate(),
+)
+  .toISOString()
+  .slice(0, 10);
 
 export default function DashboardPage() {
   const data = useStore();
+  const [period, setPeriod] = React.useState<PeriodState>({
+    preset: "6m",
+    from: MONTH_AGO_ISO,
+    to: TODAY_ISO,
+  });
 
-  const kpis = React.useMemo(() => getKpis(data), [data]);
-  const funnel = React.useMemo(() => getFunnel(data), [data]);
-  const monthly = React.useMemo(() => getMonthlySales(data), [data]);
-  const sources = React.useMemo(() => getSourceBreakdown(data), [data]);
-  const ranking = React.useMemo(() => getExecutiveRanking(data), [data]);
+  const range = React.useMemo(
+    () => getPeriodRange(period.preset, period.from, period.to),
+    [period],
+  );
+
+  // Dataset acotado al periodo seleccionado.
+  const view = React.useMemo(
+    () => filterCrmByRange(data, range),
+    [data, range],
+  );
+
+  const kpis = React.useMemo(() => getKpis(view), [view]);
+  const funnel = React.useMemo(() => getFunnel(view), [view]);
+  // La serie usa el dataset completo pero acotado por el rango interno.
+  const monthly = React.useMemo(() => getSalesTrend(data, range), [data, range]);
+  const sources = React.useMemo(() => getSourceBreakdown(view), [view]);
+  const ranking = React.useMemo(() => getExecutiveRanking(view), [view]);
 
   const recentDeals = React.useMemo(
     () =>
-      [...data.opportunities]
+      [...view.opportunities]
         .sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         )
         .slice(0, 5),
-    [data.opportunities],
+    [view.opportunities],
   );
 
   return (
@@ -54,8 +90,16 @@ export default function DashboardPage() {
         title="Dashboard Ejecutivo"
         description="Resumen del desempeño comercial en tiempo real"
       >
-        <Badge variant="info">Periodo: últimos 6 meses</Badge>
+        <PeriodSelector value={period} onChange={setPeriod} />
       </PageHeader>
+
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Badge variant="info">
+          {formatDate(range.from.toISOString())} —{" "}
+          {formatDate(range.to.toISOString())}
+        </Badge>
+        <span>· {view.opportunities.length} oportunidades en el periodo</span>
+      </div>
 
       {/* KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -106,7 +150,10 @@ export default function DashboardPage() {
       {/* Gráficos principales */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <SalesChart data={monthly} />
+          <SalesChart
+            data={monthly}
+            description={`Ventas ganadas vs. meta · ${PERIOD_LABEL[period.preset]}`}
+          />
         </div>
         <FunnelChart data={funnel} />
       </div>

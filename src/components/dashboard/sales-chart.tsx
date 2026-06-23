@@ -15,16 +15,18 @@ import { formatCompact, formatCurrency } from "@/lib/utils";
 
 interface Props {
   data: { label: string; ganadas: number; meta: number }[];
+  description?: string;
 }
 
-export function SalesChart({ data }: Props) {
+export function SalesChart({
+  data,
+  description = "Ventas ganadas vs. meta",
+}: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Ventas por mes</CardTitle>
-        <CardDescription>
-          Ventas ganadas vs. meta (últimos 6 meses)
-        </CardDescription>
+        <CardTitle>Tendencia de ventas</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[280px] w-full">

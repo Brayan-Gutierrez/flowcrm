@@ -14,6 +14,133 @@ const MONTHS_ES = [
   "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
 ];
 
+const DAY = 1000 * 60 * 60 * 24;
+
+// "Hoy" fijo del entorno demo (coherente con los datos semilla).
+export const APP_TODAY = new Date("2026-06-22T12:00:00.000Z");
+
+export type PeriodPreset = "1m" | "6m" | "12m" | "custom";
+
+export const PERIOD_LABEL: Record<PeriodPreset, string> = {
+  "1m": "Último mes",
+  "6m": "Últimos 6 meses",
+  "12m": "Últimos 12 meses",
+  custom: "Personalizado",
+};
+
+export interface DateRange {
+  from: Date;
+  to: Date;
+}
+
+/** Calcula el rango [from, to] a partir del preset o fechas personalizadas. */
+export function getPeriodRange(
+  preset: PeriodPreset,
+  customFrom?: string,
+  customTo?: string,
+  ref: Date = APP_TODAY,
+): DateRange {
+  if (preset === "custom") {
+    const to = customTo ? new Date(customTo) : ref;
+    const from = customFrom
+      ? new Date(customFrom)
+      : new Date(to.getFullYear(), to.getMonth() - 1, to.getDate());
+    return { from, to };
+  }
+  const months = preset === "1m" ? 1 : preset === "12m" ? 12 : 6;
+  const from = new Date(ref);
+  from.setMonth(from.getMonth() - months);
+  return { from, to: ref };
+}
+
+/** Filtra el dataset al rango indicado (por fecha de creación / cierre). */
+export function filterCrmByRange(data: CrmData, range: DateRange): CrmData {
+  const lo = range.from.getTime();
+  const hi = range.to.getTime();
+  const inRange = (iso: string) => {
+    const t = new Date(iso).getTime();
+    return t >= lo && t <= hi;
+  };
+  return {
+    users: data.users,
+    prospects: data.prospects.filter((p) => inRange(p.createdAt)),
+    clients: data.clients.filter((c) => inRange(c.createdAt)),
+    // Una oportunidad cuenta si se creó O se cerró dentro del periodo.
+    opportunities: data.opportunities.filter(
+      (o) =>
+        inRange(o.createdAt) ||
+        ((o.stage === "ganada" || o.stage === "perdida") &&
+          inRange(o.expectedCloseDate)),
+    ),
+    activities: data.activities.filter((a) => inRange(a.createdAt)),
+    quotes: data.quotes.filter((q) => inRange(q.createdAt)),
+  };
+}
+
+/**
+ * Serie de ventas adaptada al rango: semanal si el periodo es corto
+ * (≤ 45 días), mensual en periodos largos. Agrupa las oportunidades
+ * ganadas por su fecha de cierre.
+ */
+export function getSalesTrend(data: CrmData, range: DateRange) {
+  const { from, to } = range;
+  const spanDays = (to.getTime() - from.getTime()) / DAY;
+  const monthlyMeta = 600000;
+  const won = data.opportunities.filter((o) => o.stage === "ganada");
+
+  type Bucket = {
+    label: string;
+    start: number;
+    end: number;
+    ganadas: number;
+    meta: number;
+  };
+  const buckets: Bucket[] = [];
+
+  if (spanDays <= 45) {
+    // Semanal
+    let start = new Date(from);
+    while (start.getTime() < to.getTime()) {
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      buckets.push({
+        label: `${start.getDate()} ${MONTHS_ES[start.getMonth()]}`,
+        start: start.getTime(),
+        end: Math.min(end.getTime(), to.getTime()),
+        ganadas: 0,
+        meta: Math.round((monthlyMeta * 7) / 30),
+      });
+      start = end;
+    }
+  } else {
+    // Mensual
+    const multiYear = from.getFullYear() !== to.getFullYear();
+    let d = new Date(from.getFullYear(), from.getMonth(), 1);
+    const last = new Date(to.getFullYear(), to.getMonth(), 1);
+    while (d.getTime() <= last.getTime()) {
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      buckets.push({
+        label:
+          MONTHS_ES[d.getMonth()] +
+          (multiYear ? ` ${String(d.getFullYear()).slice(2)}` : ""),
+        start: d.getTime(),
+        end: end.getTime(),
+        ganadas: 0,
+        meta: monthlyMeta,
+      });
+      d = end;
+    }
+  }
+
+  won.forEach((o) => {
+    const t = new Date(o.expectedCloseDate).getTime();
+    const b = buckets.find((x) => t >= x.start && t < x.end);
+    if (b) b.ganadas += o.value;
+  });
+
+  return buckets.map(({ label, ganadas, meta }) => ({ label, ganadas, meta }));
+}
+
 // Totales de una cotización
 export function quoteTotals(quote: Pick<Quote, "items" | "taxRate">) {
   const subtotal = quote.items.reduce(
