@@ -22,6 +22,11 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -141,6 +146,14 @@ export default function ActividadesPage() {
         </div>
       </div>
 
+      {/* Pista de uso */}
+      {view !== "completadas" && filtered.length > 0 && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="flex h-4 w-4 items-center justify-center rounded border-2 border-muted-foreground/40" />
+          Marca el cuadro de la izquierda para completar una actividad.
+        </p>
+      )}
+
       {/* Lista */}
       {filtered.length === 0 ? (
         <EmptyState
@@ -161,18 +174,31 @@ export default function ActividadesPage() {
             return (
               <Card key={a.id} className={cn(a.completed && "opacity-70")}>
                 <CardContent className="flex items-center gap-3 p-4">
-                  <button
-                    onClick={() => toggleActivity(a.id)}
-                    className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors",
-                      a.completed
-                        ? "border-success bg-success text-white"
-                        : "border-muted-foreground/40 hover:border-primary",
-                    )}
-                    aria-label="Marcar completada"
-                  >
-                    {a.completed && <CheckSquare className="h-3 w-3" />}
-                  </button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => toggleActivity(a.id)}
+                        className={cn(
+                          "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors",
+                          a.completed
+                            ? "border-success bg-success text-white"
+                            : "border-muted-foreground/40 hover:border-primary hover:bg-primary/5",
+                        )}
+                        aria-label={
+                          a.completed
+                            ? "Marcar como pendiente"
+                            : "Marcar como completada"
+                        }
+                      >
+                        {a.completed && <CheckSquare className="h-3 w-3" />}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {a.completed
+                        ? "Marcar como pendiente"
+                        : "Marcar como completada"}
+                    </TooltipContent>
+                  </Tooltip>
 
                   <div
                     className={cn(
