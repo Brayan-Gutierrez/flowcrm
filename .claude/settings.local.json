@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vercel --version)",
+      "Bash(echo \"vercel: $\\(vercel --version 2>/dev/null || echo 'NO instalada'\\)\")",
+      "Bash(git rev-parse *)"
+    ]
+  }
+}
