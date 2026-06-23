@@ -1,10 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Menu, Search, Bell } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Avatar,
@@ -51,16 +50,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         </p>
       </div>
 
-      <div className="relative ml-auto hidden w-full max-w-xs sm:block">
-        <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar..."
-          className="pl-8"
-          aria-label="Buscar"
-        />
-      </div>
-
-      <div className="ml-auto flex items-center gap-1 sm:ml-0">
+      <div className="ml-auto flex items-center gap-1">
         <ThemeToggle />
         <Button variant="ghost" size="icon" aria-label="Notificaciones" className="relative">
           <Bell className="h-4 w-4" />

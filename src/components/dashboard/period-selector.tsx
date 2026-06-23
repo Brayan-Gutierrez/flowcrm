@@ -1,8 +1,8 @@
 "use client";
 
 import { CalendarRange } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -49,25 +49,21 @@ export function PeriodSelector({ value, onChange }: Props) {
       </Select>
 
       {value.preset === "custom" && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5">
             <Label className="text-xs text-muted-foreground">Desde</Label>
-            <Input
-              type="date"
-              className="w-[150px]"
+            <DatePicker
               value={value.from}
               max={value.to}
-              onChange={(e) => onChange({ ...value, from: e.target.value })}
+              onChange={(from) => onChange({ ...value, from })}
             />
           </div>
           <div className="flex items-center gap-1.5">
             <Label className="text-xs text-muted-foreground">Hasta</Label>
-            <Input
-              type="date"
-              className="w-[150px]"
+            <DatePicker
               value={value.to}
               min={value.from}
-              onChange={(e) => onChange({ ...value, to: e.target.value })}
+              onChange={(to) => onChange({ ...value, to })}
             />
           </div>
         </div>
